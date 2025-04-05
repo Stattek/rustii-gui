@@ -8,25 +8,14 @@ pub enum Error {
     IoError(io::ErrorKind),
 }
 
-pub async fn open_file() -> Result<(PathBuf, Arc<String>), Error> {
+pub async fn open_file() -> Result<PathBuf, Error> {
     let picked_file = rfd::AsyncFileDialog::new()
         .set_title("Open an image file...")
         .pick_file()
         .await
         .ok_or(Error::DialogClosed)?;
 
-    load_file(picked_file).await
-}
-
-pub async fn load_file(path: impl Into<PathBuf>) -> Result<(PathBuf, Arc<String>), Error> {
-    let path = path.into();
-
-    let contents = tokio::fs::read_to_string(&path)
-        .await
-        .map(Arc::new)
-        .map_err(|error| Error::IoError(error.kind()))?;
-
-    Ok((path, contents))
+    Ok(PathBuf::from(picked_file.path()))
 }
 
 pub async fn save_file(path: Option<PathBuf>) -> Result<PathBuf, Error> {

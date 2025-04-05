@@ -3538,6 +3538,7 @@ name = "rustii-gui"
 version = "0.1.0"
 dependencies = [
  "iced",
+ "rascii_art",
  "rayon",
  "rfd",
  "rustii",

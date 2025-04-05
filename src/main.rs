@@ -8,6 +8,10 @@ use iced::widget::{
 };
 use iced::{Center, Element, Fill, Subscription, Theme};
 use iced::{Font, Task, keyboard};
+use rascii_art::RenderOptions;
+use rascii_art::charsets::{Charset, MINIMAL};
+use rustii::ascii_image_options::AsciiImageOptions;
+use rustii::convert_image_to_ascii_png;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -28,6 +32,7 @@ struct RustiiGui {
     slider_value: f32,
     checkbox_value: bool,
     toggler_value: bool,
+    // whether we're loading a file or not (waiting for the user to finish opening a file)
     is_loading: bool,
     input_file: Option<PathBuf>,
     output_file: Option<PathBuf>,
@@ -42,7 +47,7 @@ enum Message {
     Convert,
     OpenInputFile,
     OpenOutputFile,
-    InputFileOpened(Result<(PathBuf, Arc<String>), Error>),
+    InputFileOpened(Result<PathBuf, Error>),
     OutputFileOpened(Result<PathBuf, Error>),
     SliderChanged(f32),
     CheckboxToggled(bool),
@@ -75,9 +80,45 @@ impl RustiiGui {
                 Task::none()
             }
             Message::Convert => {
-                println!("convert file");
+                // don't convert if we're already loading a file
+                if self.is_loading {
+                    Task::none()
+                } else {
+                    let rascii_options = RenderOptions {
+                        width: Some(100),
+                        height: None,
+                        colored: true,
+                        escape_each_colored_char: true,
+                        invert: false,
+                        charset: MINIMAL,
+                    };
 
-                Task::none()
+                    let rustii_options = AsciiImageOptions::new(None, false);
+
+                    if let Some(input_file) = &self.input_file {
+                        if let Some(output_file) = &self.output_file {
+                            if let Some(input_file_str) = input_file.to_str() {
+                                if let Some(output_file_str) = output_file.to_str() {
+                                    match convert_image_to_ascii_png(
+                                        input_file_str,
+                                        output_file_str,
+                                        &rascii_options,
+                                        &rustii_options,
+                                    ) {
+                                        Ok(_) => {
+                                            println!("Saved PNG {}", output_file_str);
+                                        }
+                                        Err(_) => {
+                                            eprintln!("Could not save PNG {}", output_file_str);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Task::none()
+                }
             }
             Message::OpenInputFile => {
                 if self.is_loading {
@@ -99,7 +140,7 @@ impl RustiiGui {
             Message::InputFileOpened(result) => {
                 self.is_loading = false;
 
-                if let Ok((path, _)) = result {
+                if let Ok(path) = result {
                     self.input_file = Some(path);
                 }
 
