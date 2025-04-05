@@ -6,5 +6,7 @@ GUI wrapper for the Rustii program.
 
 Starting off with some example code, using it to get a simple program.
 
-- [ ] Allow for selecting input and output files and converting.
+- [x] Allow for selecting input and output files and converting.
+  - [ ] Perform check that image ends with ".png."
 - [ ] Allow for inputting of arguments to Rustii.
+- [ ] Make it prettier.
