@@ -1,3 +1,6 @@
+mod file_operations;
+
+use file_operations::*;
 use iced::widget::{
     button, center, checkbox, column, container, horizontal_rule, pick_list, progress_bar, row,
     scrollable, slider, text, text_input, toggler, vertical_rule, vertical_space,
@@ -9,9 +12,10 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 pub fn main() -> iced::Result {
-    iced::application("Styling - Iced", RustiiGui::update, RustiiGui::view)
+    iced::application("RustiiGUI", RustiiGui::update, RustiiGui::view)
         .subscription(RustiiGui::subscription)
         .theme(RustiiGui::theme)
+        // since the default font is broken on linux, we will use monospace
         .default_font(Font::MONOSPACE)
         .run()
 }
@@ -29,7 +33,9 @@ struct RustiiGui {
 enum Message {
     ThemeChanged(Theme),
     InputChanged(String),
-    ButtonPressed,
+    InputFile,
+    OutputFile,
+    Convert,
     SliderChanged(f32),
     CheckboxToggled(bool),
     TogglerToggled(bool),
@@ -44,7 +50,15 @@ impl RustiiGui {
                 self.theme = theme;
             }
             Message::InputChanged(value) => self.input_value = value,
-            Message::ButtonPressed => {}
+            Message::InputFile => {
+                println!("input file");
+            }
+            Message::OutputFile => {
+                println!("output file");
+            }
+            Message::Convert => {
+                println!("convert file");
+            }
             Message::SliderChanged(value) => self.slider_value = value,
             Message::CheckboxToggled(value) => self.checkbox_value = value,
             Message::TogglerToggled(value) => self.toggler_value = value,
@@ -80,15 +94,15 @@ impl RustiiGui {
             .padding(10)
             .size(20);
 
-        let styled_button = |label| {
-            button(text(label).width(Fill).center())
-                .padding(10)
-                .on_press(Message::ButtonPressed)
-        };
+        let styled_button = |label| button(text(label).width(Fill).center()).padding(10);
 
-        let primary = styled_button("Primary");
-        let success = styled_button("Success").style(button::success);
-        let danger = styled_button("Danger").style(button::danger);
+        let primary = styled_button("Primary").on_press(Message::InputFile);
+        let success = styled_button("Success")
+            .style(button::success)
+            .on_press(Message::OutputFile);
+        let danger = styled_button("Danger")
+            .style(button::danger)
+            .on_press(Message::Convert);
 
         let slider = || slider(0.0..=100.0, self.slider_value, Message::SliderChanged);
 
