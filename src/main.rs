@@ -74,7 +74,15 @@ impl RustiiGui {
 
                 Task::none()
             }
-            Message::OpenFile => Task::perform(open_file(), Message::FileOpened),
+            Message::OpenFile => {
+                if self.is_loading {
+                    Task::none()
+                } else {
+                    self.is_loading = true;
+
+                    Task::perform(open_file(), Message::FileOpened)
+                }
+            }
             Message::FileOpened(value) => Task::none(),
             Message::SliderChanged(value) => {
                 self.slider_value = value;
