@@ -10,7 +10,7 @@ pub enum Error {
 
 pub async fn open_file() -> Result<(PathBuf, Arc<String>), Error> {
     let picked_file = rfd::AsyncFileDialog::new()
-        .set_title("Open a text file...")
+        .set_title("Open an image file...")
         .pick_file()
         .await
         .ok_or(Error::DialogClosed)?;
