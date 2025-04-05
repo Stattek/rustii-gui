@@ -10,3 +10,4 @@ Starting off with some example code, using it to get a simple program.
   - [ ] Perform check that image ends with ".png."
 - [ ] Allow for inputting of arguments to Rustii.
 - [ ] Make it prettier.
+  - [ ] Implementing the progress bar would be cool.
