@@ -95,6 +95,7 @@ impl RustiiGui {
 
                     let rustii_options = AsciiImageOptions::new(None, false);
 
+                    // FIXME: this is ugly
                     if let Some(input_file) = &self.input_file {
                         if let Some(output_file) = &self.output_file {
                             if let Some(input_file_str) = input_file.to_str() {
@@ -219,16 +220,21 @@ impl RustiiGui {
             None => None,
         };
 
-        let file_names: iced::widget::Column<'_, Message> = column![
-            text(input_file_name_str.unwrap_or("input file")),
-            text(output_file_name_str.unwrap_or("output file"))
-        ];
+        let file_names = container(
+            column![
+                text("Input File:").size(36),
+                text(input_file_name_str.unwrap_or("no input file")),
+                text("Output File:").size(36),
+                text(output_file_name_str.unwrap_or("no output file"))
+            ]
+            .spacing(20),
+        )
+        .style(container::rounded_box);
 
-        let primary = styled_button("Primary").on_press(Message::OpenInputFile);
-        let success = styled_button("Success")
-            .style(button::success)
-            .on_press(Message::OpenOutputFile);
-        let danger = styled_button("Danger")
+        let open_input_button = styled_button("Select Input File").on_press(Message::OpenInputFile);
+        let open_output_button =
+            styled_button("Select Output File").on_press(Message::OpenOutputFile);
+        let convert_button = styled_button("Convert to ASCII")
             .style(button::danger)
             .on_press(Message::Convert);
 
@@ -236,6 +242,7 @@ impl RustiiGui {
 
         let progress_bar = || progress_bar(0.0..=100.0, self.slider_value);
 
+        // TODO: instead of doing println when we have saved an image, should we keep output somewhere to put here?
         let scrollable = scrollable(column![
             "Scroll me!",
             vertical_space().height(800),
@@ -264,7 +271,9 @@ impl RustiiGui {
             file_names,
             horizontal_rule(38),
             rustii_text_input,
-            row![primary, success, danger].spacing(10).align_y(Center),
+            row![open_input_button, open_output_button, convert_button]
+                .spacing(10)
+                .align_y(Center),
             slider(),
             progress_bar(),
             row![
