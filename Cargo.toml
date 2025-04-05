@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = "0.13.1"
-rustii = { version = "0.4.2", path = "rustii/" }
+rayon = { version = "1.10.0" }
+tokio = { version = "1.44.1", features = ["fs"] }
+iced = { version = "0.13.1", features = ["highlighter", "tokio", "debug"] }
+rustii = { version = "0.5.0", path = "rustii/" }
+rfd = "0.13"
