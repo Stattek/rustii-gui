@@ -16,7 +16,7 @@ pub fn main() -> iced::Result {
         .run()
 }
 
-// TODO: remove
+// TODO: check this code
 
 #[derive(Debug, Clone)]
 pub enum Error {
@@ -64,7 +64,8 @@ async fn save_file(path: Option<PathBuf>, contents: String) -> Result<PathBuf, E
 
     Ok(path)
 }
-// TODO: end of todo remove
+// TODO: end of todo
+
 #[derive(Default)]
 struct RustiiGui {
     theme: Theme,
