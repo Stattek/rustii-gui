@@ -6,7 +6,7 @@ use iced::widget::{
     scrollable, slider, text, text_input, toggler, vertical_rule, vertical_space,
 };
 use iced::{Center, Element, Fill, Subscription, Theme};
-use iced::{Font, keyboard};
+use iced::{Font, Task, keyboard};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -27,6 +27,7 @@ struct RustiiGui {
     slider_value: f32,
     checkbox_value: bool,
     toggler_value: bool,
+    is_loading: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +37,8 @@ enum Message {
     InputFile,
     OutputFile,
     Convert,
+    OpenFile,
+    FileOpened(Result<(PathBuf, Arc<String>), Error>),
     SliderChanged(f32),
     CheckboxToggled(bool),
     TogglerToggled(bool),
@@ -44,24 +47,47 @@ enum Message {
 }
 
 impl RustiiGui {
-    fn update(&mut self, message: Message) {
+    fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::ThemeChanged(theme) => {
                 self.theme = theme;
+
+                Task::none()
             }
-            Message::InputChanged(value) => self.input_value = value,
+            Message::InputChanged(value) => {
+                self.input_value = value;
+
+                Task::none()
+            }
             Message::InputFile => {
                 println!("input file");
+
+                Task::none()
             }
             Message::OutputFile => {
                 println!("output file");
+
+                Task::none()
             }
             Message::Convert => {
                 println!("convert file");
+
+                Task::none()
             }
-            Message::SliderChanged(value) => self.slider_value = value,
-            Message::CheckboxToggled(value) => self.checkbox_value = value,
-            Message::TogglerToggled(value) => self.toggler_value = value,
+            Message::OpenFile => Task::perform(open_file(), Message::FileOpened),
+            Message::FileOpened(value) => Task::none(),
+            Message::SliderChanged(value) => {
+                self.slider_value = value;
+                Task::none()
+            }
+            Message::CheckboxToggled(value) => {
+                self.checkbox_value = value;
+                Task::none()
+            }
+            Message::TogglerToggled(value) => {
+                self.toggler_value = value;
+                Task::none()
+            }
             Message::PreviousTheme | Message::NextTheme => {
                 if let Some(current) = Theme::ALL
                     .iter()
@@ -78,6 +104,8 @@ impl RustiiGui {
                         Theme::ALL[current - 1].clone()
                     };
                 }
+
+                Task::none()
             }
         }
     }
@@ -102,7 +130,7 @@ impl RustiiGui {
             .on_press(Message::OutputFile);
         let danger = styled_button("Danger")
             .style(button::danger)
-            .on_press(Message::Convert);
+            .on_press(Message::OpenFile);
 
         let slider = || slider(0.0..=100.0, self.slider_value, Message::SliderChanged);
 
