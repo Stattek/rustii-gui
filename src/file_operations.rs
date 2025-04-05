@@ -29,7 +29,7 @@ pub async fn load_file(path: impl Into<PathBuf>) -> Result<(PathBuf, Arc<String>
     Ok((path, contents))
 }
 
-pub async fn save_file(path: Option<PathBuf>, contents: String) -> Result<PathBuf, Error> {
+pub async fn save_file(path: Option<PathBuf>) -> Result<PathBuf, Error> {
     let path = if let Some(path) = path {
         path
     } else {
@@ -41,10 +41,6 @@ pub async fn save_file(path: Option<PathBuf>, contents: String) -> Result<PathBu
             .map(Path::to_owned)
             .ok_or(Error::DialogClosed)?
     };
-
-    tokio::fs::write(&path, contents)
-        .await
-        .map_err(|error| Error::IoError(error.kind()))?;
 
     Ok(path)
 }

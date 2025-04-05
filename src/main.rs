@@ -2,8 +2,9 @@ mod file_operations;
 
 use file_operations::*;
 use iced::widget::{
-    button, center, checkbox, column, container, horizontal_rule, pick_list, progress_bar, row,
-    scrollable, slider, text, text_input, toggler, vertical_rule, vertical_space,
+    TextInput, button, center, checkbox, column, container, horizontal_rule, pick_list,
+    progress_bar, row, scrollable, slider, text, text_input, toggler, vertical_rule,
+    vertical_space,
 };
 use iced::{Center, Element, Fill, Subscription, Theme};
 use iced::{Font, Task, keyboard};
@@ -28,6 +29,8 @@ struct RustiiGui {
     checkbox_value: bool,
     toggler_value: bool,
     is_loading: bool,
+    input_file: Option<PathBuf>,
+    output_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
@@ -37,8 +40,10 @@ enum Message {
     InputFile,
     OutputFile,
     Convert,
-    OpenFile,
-    FileOpened(Result<(PathBuf, Arc<String>), Error>),
+    OpenInputFile,
+    OpenOutputFile,
+    InputFileOpened(Result<(PathBuf, Arc<String>), Error>),
+    OutputFileOpened(Result<PathBuf, Error>),
     SliderChanged(f32),
     CheckboxToggled(bool),
     TogglerToggled(bool),
@@ -74,16 +79,41 @@ impl RustiiGui {
 
                 Task::none()
             }
-            Message::OpenFile => {
+            Message::OpenInputFile => {
                 if self.is_loading {
                     Task::none()
                 } else {
                     self.is_loading = true;
 
-                    Task::perform(open_file(), Message::FileOpened)
+                    Task::perform(open_file(), Message::InputFileOpened)
                 }
             }
-            Message::FileOpened(value) => Task::none(),
+            Message::OpenOutputFile => {
+                if self.is_loading {
+                    Task::none()
+                } else {
+                    self.is_loading = true;
+                    Task::perform(save_file(None), Message::OutputFileOpened)
+                }
+            }
+            Message::InputFileOpened(result) => {
+                self.is_loading = false;
+
+                if let Ok((path, _)) = result {
+                    self.input_file = Some(path);
+                }
+
+                Task::none()
+            }
+            Message::OutputFileOpened(result) => {
+                self.is_loading = false;
+
+                if let Ok(path) = result {
+                    self.output_file = Some(path);
+                }
+
+                Task::none()
+            }
             Message::SliderChanged(value) => {
                 self.slider_value = value;
                 Task::none()
@@ -125,20 +155,41 @@ impl RustiiGui {
         ]
         .spacing(10);
 
-        let text_input = text_input("Type something...", &self.input_value)
+        let rustii_text_input = text_input("Type something...", &self.input_value)
             .on_input(Message::InputChanged)
             .padding(10)
             .size(20);
 
         let styled_button = |label| button(text(label).width(Fill).center()).padding(10);
 
-        let primary = styled_button("Primary").on_press(Message::InputFile);
+        let input_file_name_str = match &self.input_file {
+            Some(input_file_name) => match input_file_name.to_str() {
+                Some(the_name) => Some(the_name),
+                None => None,
+            },
+            None => None,
+        };
+
+        let output_file_name_str = match &self.output_file {
+            Some(output_file_name) => match output_file_name.to_str() {
+                Some(the_name) => Some(the_name),
+                None => None,
+            },
+            None => None,
+        };
+
+        let file_names: iced::widget::Column<'_, Message> = column![
+            text(input_file_name_str.unwrap_or("input file")),
+            text(output_file_name_str.unwrap_or("output file"))
+        ];
+
+        let primary = styled_button("Primary").on_press(Message::OpenInputFile);
         let success = styled_button("Success")
             .style(button::success)
-            .on_press(Message::OutputFile);
+            .on_press(Message::OpenOutputFile);
         let danger = styled_button("Danger")
             .style(button::danger)
-            .on_press(Message::OpenFile);
+            .on_press(Message::Convert);
 
         let slider = || slider(0.0..=100.0, self.slider_value, Message::SliderChanged);
 
@@ -169,8 +220,9 @@ impl RustiiGui {
 
         let content = column![
             choose_theme,
+            file_names,
             horizontal_rule(38),
-            text_input,
+            rustii_text_input,
             row![primary, success, danger].spacing(10).align_y(Center),
             slider(),
             progress_bar(),
