@@ -9,10 +9,12 @@ use iced::widget::{
 use iced::{Center, Element, Fill, Subscription, Theme};
 use iced::{Font, Task, keyboard};
 use rascii_art::RenderOptions;
-use rascii_art::charsets::MINIMAL;
+use rascii_art::charsets::{Charset, MINIMAL};
 use rustii::ascii_image_options::AsciiImageOptions;
 use rustii::convert_image_to_ascii_png;
-use std::path::PathBuf;
+use std::io;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 pub fn main() -> iced::Result {
     iced::application("RustiiGUI", RustiiGui::update, RustiiGui::view)
@@ -40,6 +42,8 @@ struct RustiiGui {
 enum Message {
     ThemeChanged(Theme),
     InputChanged(String),
+    InputFile,
+    OutputFile,
     Convert,
     OpenInputFile,
     OpenOutputFile,
