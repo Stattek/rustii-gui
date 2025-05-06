@@ -220,15 +220,18 @@ impl RustiiGui {
             None => None,
         };
 
-        let file_names = container(
-            column![
-                text("Input File:").size(36),
-                text(input_file_name_str.unwrap_or("no input file")),
-                text("Output File:").size(36),
-                text(output_file_name_str.unwrap_or("no output file"))
-            ]
-            .spacing(20),
-        )
+        let input_file_header = container(column![text("Input File:").size(36)]);
+
+        let input_file_container = container(scrollable(column![text(
+            input_file_name_str.unwrap_or("No Input File.")
+        ),]))
+        .style(container::rounded_box);
+
+        let output_file_header = container(column![text("Output File:").size(36)]);
+
+        let output_file_container = container(scrollable(column![text(
+            output_file_name_str.unwrap_or("No Output File.")
+        )]))
         .style(container::rounded_box);
 
         let open_input_button = styled_button("Select Input File").on_press(Message::OpenInputFile);
@@ -243,7 +246,7 @@ impl RustiiGui {
         let progress_bar = || progress_bar(0.0..=100.0, self.slider_value);
 
         // TODO: instead of doing println when we have saved an image, should we keep output somewhere to put here?
-        let scrollable = scrollable(column![
+        let my_scrollable = scrollable(column![
             "Scroll me!",
             vertical_space().height(800),
             "You did it!"
@@ -266,29 +269,32 @@ impl RustiiGui {
                 .style(container::bordered_box)
         };
 
-        let content = column![
-            choose_theme,
-            file_names,
-            horizontal_rule(38),
-            rustii_text_input,
-            row![open_input_button, open_output_button, convert_button]
+        let content = container(scrollable(
+            column![
+                choose_theme,
+                row![input_file_header, output_file_header].spacing(10),
+                row![input_file_container, output_file_container].spacing(10),
+                horizontal_rule(38),
+                rustii_text_input,
+                row![open_input_button, open_output_button, convert_button]
+                    .spacing(10)
+                    .align_y(Center),
+                slider(),
+                progress_bar(),
+                row![
+                    my_scrollable,
+                    vertical_rule(38),
+                    column![checkbox, toggler].spacing(20)
+                ]
                 .spacing(10)
+                .height(100)
                 .align_y(Center),
-            slider(),
-            progress_bar(),
-            row![
-                scrollable,
-                vertical_rule(38),
-                column![checkbox, toggler].spacing(20)
+                card
             ]
-            .spacing(10)
-            .height(100)
-            .align_y(Center),
-            card
-        ]
-        .spacing(20)
-        .padding(20)
-        .max_width(600);
+            .spacing(20)
+            .padding(20)
+            .max_width(600),
+        ));
 
         center(content).into()
     }
